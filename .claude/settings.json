@@ -1,0 +1,6 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://ai.megallm.io",
+    "ANTHROPIC_API_KEY": "sk-mega-66ca6760a5b38fff5676c52b60051739c7f0bc118e1a67209692554db9ba5a09"
+  }
+}
