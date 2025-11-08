@@ -106,7 +106,8 @@ class RobotCube @Inject constructor() {
     }
 
     fun initialize() {
-        if (isInitialized) return
+        // Always reinitialize to handle context recreation
+        // (OpenGL context is lost when app goes to background)
 
         // Prepare shaders
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)

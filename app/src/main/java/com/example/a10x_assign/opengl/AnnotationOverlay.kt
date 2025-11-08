@@ -46,7 +46,8 @@ class AnnotationOverlay @Inject constructor() {
     private val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
 
     fun initialize() {
-        if (isInitialized) return
+        // Always reinitialize to handle context recreation
+        // (OpenGL context is lost when app goes to background)
 
         // Prepare shaders
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)

@@ -134,7 +134,8 @@ class Room @Inject constructor() {
     }
 
     fun initialize() {
-        if (isInitialized) return
+        // Always reinitialize to handle context recreation
+        // (OpenGL context is lost when app goes to background)
 
         // Initialize vertex buffer
         val vbb = ByteBuffer.allocateDirect(vertices.size * 4)

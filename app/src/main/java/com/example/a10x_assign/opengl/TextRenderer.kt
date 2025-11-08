@@ -62,7 +62,8 @@ class TextRenderer @Inject constructor() {
     private val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
 
     fun initialize(context: Context) {
-        if (isInitialized) return
+        // Always reinitialize to handle context recreation
+        // (OpenGL context is lost when app goes to background)
 
         // Prepare shaders
         val vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode)
@@ -93,6 +94,9 @@ class TextRenderer @Inject constructor() {
         texCoordBuffer = tcb.asFloatBuffer()
         texCoordBuffer.put(texCoords)
         texCoordBuffer.position(0)
+
+        // Clear old textures if any
+        textureIds.clear()
 
         // Create textures for wall labels
         createTextTexture(context, "BACK WALL", "back_wall")

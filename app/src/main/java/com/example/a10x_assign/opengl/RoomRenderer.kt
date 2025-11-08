@@ -24,6 +24,10 @@ class RoomRenderer @Inject constructor(
 
     private var context: android.content.Context? = null
 
+    // Store viewport dimensions to restore after context recreation
+    private var viewportWidth: Int = 0
+    private var viewportHeight: Int = 0
+
     fun setContext(context: android.content.Context) {
         this.context = context
     }
@@ -48,9 +52,20 @@ class RoomRenderer @Inject constructor(
         context?.let {
             textRenderer.initialize(it)
         }
+
+        // Restore viewport and projection if we have valid dimensions
+        // This handles the case where onSurfaceChanged might not be called
+        if (viewportWidth > 0 && viewportHeight > 0) {
+            GLES20.glViewport(0, 0, viewportWidth, viewportHeight)
+            camera.setProjection(viewportWidth, viewportHeight)
+        }
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+        // Store dimensions for context recreation
+        viewportWidth = width
+        viewportHeight = height
+
         GLES20.glViewport(0, 0, width, height)
         camera.setProjection(width, height)
     }
