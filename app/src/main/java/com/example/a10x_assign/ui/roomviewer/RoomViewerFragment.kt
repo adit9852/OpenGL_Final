@@ -349,68 +349,80 @@ fun RoomViewerUI(
     onCancelRobotPlacement: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
+        // Camera position indicator (floating in canvas)
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 16.dp, top = 120.dp),
+            color = if (state.isCameraInsideRoom) Color(0x88009688) else Color(0x88FF5722),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Text(
+                text = if (state.isCameraInsideRoom) "Inside Room" else "Outside Room",
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                )
+            )
+        }
+
         // Top toolbar
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter),
-            color = Color(0xCC000000),
-            tonalElevation = 8.dp
+            color = Color(0xDD000000),
+            tonalElevation = 4.dp
         ) {
             Row(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 16.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        "Robot Operator",
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleLarge
+                Text(
+                    "Robot Operator",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
                     )
+                )
 
-                    // Camera position indicator (below Robot Operator title)
-                    Surface(
-                        modifier = Modifier.padding(top = 8.dp),
-                        color = if (state.isCameraInsideRoom) Color(0xCC4CAF50) else Color(0xCCFF5722),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = if (state.isCameraInsideRoom) "Inside Room" else "Outside Room",
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
                         onClick = onToggleMeshWalls,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when (state.wallRenderMode) {
-                                WallRenderMode.FLAT -> Color(0xFF424242)
-                                WallRenderMode.MESH -> Color(0xFF9C27B0)
-                                WallRenderMode.WIREFRAME -> Color(0xFF00BCD4)
+                                WallRenderMode.FLAT -> Color(0xFF546E7A)
+                                WallRenderMode.MESH -> Color(0xFF7B1FA2)
+                                WallRenderMode.WIREFRAME -> Color(0xFF0097A7)
                             }
-                        )
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(when (state.wallRenderMode) {
-                            WallRenderMode.FLAT -> "Flat Walls"
-                            WallRenderMode.MESH -> "Mesh Walls"
-                            WallRenderMode.WIREFRAME -> "Wireframe"
-                        })
+                        Text(
+                            when (state.wallRenderMode) {
+                                WallRenderMode.FLAT -> "Flat"
+                                WallRenderMode.MESH -> "Mesh"
+                                WallRenderMode.WIREFRAME -> "Wire"
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
 
                     Button(
                         onClick = onAnnotationListToggle,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (state.showAnnotationList) Color(0xFF2196F3) else Color(0xFF424242)
-                        )
+                            containerColor = if (state.showAnnotationList) Color(0xFF1976D2) else Color(0xFF546E7A)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Annotations (${state.annotations.size})")
+                        Text(
+                            "Notes (${state.annotations.size})",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }
@@ -421,10 +433,10 @@ fun RoomViewerUI(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
-            color = Color(0xCC000000),
-            tonalElevation = 8.dp
+            color = Color(0xDD000000),
+            tonalElevation = 4.dp
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
                 // Annotation type selector
                 if (state.isAnnotationMode) {
                     Row(
@@ -460,30 +472,51 @@ fun RoomViewerUI(
                         onClick = onAnnotationModeToggle,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (state.isAnnotationMode) Color(0xFF4CAF50) else Color(0xFF2196F3)
-                        )
+                            containerColor = if (state.isAnnotationMode) Color(0xFF43A047) else Color(0xFF1E88E5)
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp)
                     ) {
-                        Text(if (state.isAnnotationMode) "Exit Annotation" else "Add Annotation")
+                        Text(
+                            if (state.isAnnotationMode) "Exit Annotation" else "Add Annotation",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                        )
                     }
 
                     Button(
                         onClick = onRobotPlacementToggle,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (state.isRobotPlacementMode) Color(0xFFF44336) else Color(0xFFFF9800)
-                        )
+                            containerColor = if (state.isRobotPlacementMode) Color(0xFFE53935) else Color(0xFFFB8C00)
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp)
                     ) {
-                        Text(if (state.isRobotPlacementMode) "Cancel Place" else "Place Robot")
+                        Text(
+                            if (state.isRobotPlacementMode) "Cancel Place" else "Place Robot",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                        )
                     }
 
                     if (state.robotPosition != null) {
                         Button(
                             onClick = onClearRobot,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFF44336)
-                            )
+                                containerColor = Color(0xFFD32F2F)
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 14.dp)
                         ) {
-                            Text("Clear")
+                            Text(
+                                "Clear",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                                )
+                            )
                         }
                     }
                 }
