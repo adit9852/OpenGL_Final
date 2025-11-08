@@ -10,14 +10,18 @@ import javax.microedition.khronos.opengles.GL10
 
 class RoomRenderer @Inject constructor(
     val camera: Camera,
-    private val room: Room,
+    val room: Room,
     private val robotCube: RobotCube,
     private val annotationOverlay: AnnotationOverlay,
     private val textRenderer: TextRenderer
 ) : GLSurfaceView.Renderer {
 
+    @Volatile
     var robotPosition: RobotEntity? = null
+
+    @Volatile
     var annotations: List<AnnotationEntity> = emptyList()
+
     private var context: android.content.Context? = null
 
     fun setContext(context: android.content.Context) {
@@ -25,8 +29,8 @@ class RoomRenderer @Inject constructor(
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        // Set the background color to a soft sky blue
-        GLES20.glClearColor(0.85f, 0.9f, 0.95f, 1.0f)
+        // Set the background color to a pleasant gradient-like sky color
+        GLES20.glClearColor(0.78f, 0.85f, 0.92f, 1.0f)
 
         // Enable depth testing for proper 3D rendering
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)

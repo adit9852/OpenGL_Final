@@ -8,7 +8,10 @@ data class RayHit(
     val wallType: WallType,
     val x: Float,  // Normalized 0-1 coordinate on wall
     val y: Float,  // Normalized 0-1 coordinate on wall
-    val distance: Float  // Distance from camera (for sorting)
+    val distance: Float,  // Distance from camera (for sorting)
+    val worldX: Float = 0f,  // Actual world X coordinate
+    val worldY: Float = 0f,  // Actual world Y coordinate
+    val worldZ: Float = 0f   // Actual world Z coordinate
 )
 
 class RayCaster @Inject constructor() {
@@ -138,7 +141,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitY + h) / height
 
-        return RayHit(WallType.BACK_WALL, normalizedX, normalizedY, t)
+        return RayHit(WallType.BACK_WALL, normalizedX, normalizedY, t, hitX, planeZ, hitY)
     }
 
     private fun testFrontWall(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -160,7 +163,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitY + h) / height
 
-        return RayHit(WallType.FRONT_WALL, normalizedX, normalizedY, t)
+        return RayHit(WallType.FRONT_WALL, normalizedX, normalizedY, t, hitX, planeZ, hitY)
     }
 
     private fun testLeftWall(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -182,7 +185,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitZ + d) / depth
         val normalizedY = (hitY + h) / height
 
-        return RayHit(WallType.LEFT_WALL, normalizedX, normalizedY, t)
+        return RayHit(WallType.LEFT_WALL, normalizedX, normalizedY, t, planeX, hitY, hitZ)
     }
 
     private fun testRightWall(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -204,7 +207,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitZ + d) / depth
         val normalizedY = (hitY + h) / height
 
-        return RayHit(WallType.RIGHT_WALL, normalizedX, normalizedY, t)
+        return RayHit(WallType.RIGHT_WALL, normalizedX, normalizedY, t, planeX, hitY, hitZ)
     }
 
     private fun testFloor(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -226,7 +229,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitZ + d) / depth
 
-        return RayHit(WallType.FLOOR, normalizedX, normalizedY, t)
+        return RayHit(WallType.FLOOR, normalizedX, normalizedY, t, hitX, planeY, hitZ)
     }
 
     private fun testCeiling(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -248,6 +251,6 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitZ + d) / depth
 
-        return RayHit(WallType.CEILING, normalizedX, normalizedY, t)
+        return RayHit(WallType.CEILING, normalizedX, normalizedY, t, hitX, planeY, hitZ)
     }
 }

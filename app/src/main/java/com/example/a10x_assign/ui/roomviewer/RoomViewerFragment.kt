@@ -23,7 +23,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.a10x_assign.data.AnnotationType
 import com.example.a10x_assign.opengl.RoomSurfaceView
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,40 +59,180 @@ class RoomViewerFragment : Fragment() {
             )
         )
 
-        // Add transparent touch interceptor for annotation mode
+        // Add transparent touch interceptor for annotation mode and robot drag
         val touchInterceptor = View(requireContext()).apply {
+            var downX = 0f
+            var downY = 0f
+            var downTime = 0L
+            var isTap = true
+            var isDraggingRobot = false
+
             setOnTouchListener { v, event ->
                 val state = viewModel.uiState.value
-                if (state.isAnnotationMode && event.action == MotionEvent.ACTION_DOWN) {
-                    // Cast ray to find which wall was touched
-                    val hit = rayCaster.castRay(
-                        event.x,
-                        event.y,
-                        v.width,
-                        v.height,
-                        glSurfaceView.renderer.camera
-                    )
 
-                    hit?.let {
-                        // Add annotation at the touched location
-                        viewModel.addAnnotation(
-                            wall = it.wallType,
-                            x = it.x,
-                            y = it.y,
-                            width = 0.15f,  // Default size
-                            height = 0.15f
-                        )
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        downX = event.x
+                        downY = event.y
+                        downTime = System.currentTimeMillis()
+                        isTap = true
+                        isDraggingRobot = false
 
-                        // Show feedback
-                        Toast.makeText(
-                            requireContext(),
-                            "Annotation added to ${it.wallType.name}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Check if we're touching the robot (even if not in placement mode)
+                        state.robotPosition?.let { robot ->
+                            val hit = rayCaster.castRay(
+                                event.x,
+                                event.y,
+                                v.width,
+                                v.height,
+                                glSurfaceView.renderer.camera
+                            )
+
+                            hit?.let {
+                                // Check if the ray hit near the robot position
+                                if (it.wallType == com.example.a10x_assign.data.WallType.FLOOR) {
+                                    val dx = it.worldX - robot.x
+                                    val dz = it.worldZ - robot.z
+                                    val distance = Math.sqrt((dx * dx + dz * dz).toDouble()).toFloat()
+
+                                    // If within 0.5 units of robot, start dragging
+                                    if (distance < 0.5f) {
+                                        isDraggingRobot = true
+                                        return@setOnTouchListener true
+                                    }
+                                }
+                            }
+                        }
+
+                        // Only intercept touches when in annotation or robot placement mode
+                        if (!state.isAnnotationMode && !state.isRobotPlacementMode) {
+                            return@setOnTouchListener false // Let GLSurfaceView handle all touches
+                        }
+
+                        true // Consume the event when in annotation/robot mode
                     }
-                    true  // Consume the event in annotation mode
-                } else {
-                    false  // Let touch pass through to GLSurfaceView for camera controls
+
+                    MotionEvent.ACTION_MOVE -> {
+                        // If dragging robot, update its position
+                        if (isDraggingRobot) {
+                            val hit = rayCaster.castRay(
+                                event.x,
+                                event.y,
+                                v.width,
+                                v.height,
+                                glSurfaceView.renderer.camera
+                            )
+
+                            hit?.let {
+                                if (it.wallType == com.example.a10x_assign.data.WallType.FLOOR) {
+                                    // Update robot position as we drag
+                                    state.robotPosition?.let { robot ->
+                                        viewModel.placeRobot(it.worldX, it.worldY, it.worldZ, robot.rotationY)
+                                    }
+                                }
+                            }
+                            return@setOnTouchListener true
+                        }
+
+                        // Check if movement exceeds threshold
+                        val deltaX = Math.abs(event.x - downX)
+                        val deltaY = Math.abs(event.y - downY)
+                        val touchSlop = 15f // pixels threshold for movement (increased for easier camera control)
+
+                        if (deltaX > touchSlop || deltaY > touchSlop) {
+                            isTap = false // It's a swipe/drag, not a tap
+                        }
+
+                        // If it's not a tap anymore and not dragging robot, pass through to camera controls
+                        if (!isDraggingRobot) {
+                            !isTap
+                        } else {
+                            true
+                        }
+                    }
+
+                    MotionEvent.ACTION_UP -> {
+                        // If we were dragging robot, complete the drag
+                        if (isDraggingRobot) {
+                            Toast.makeText(
+                                requireContext(),
+                                "Robot moved",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            isDraggingRobot = false
+                            return@setOnTouchListener true
+                        }
+
+                        val upTime = System.currentTimeMillis()
+                        val touchDuration = upTime - downTime
+                        val maxTapDuration = 400L // milliseconds (increased for easier tapping)
+
+                        // Only process as tap if no significant movement occurred and touch was short
+                        if (isTap && touchDuration < maxTapDuration) {
+
+                            // Cast ray to find what was touched
+                            val hit = rayCaster.castRay(
+                                event.x,
+                                event.y,
+                                v.width,
+                                v.height,
+                                glSurfaceView.renderer.camera
+                            )
+
+                            hit?.let {
+                                when {
+                                    // Robot placement mode - only place on floor
+                                    state.isRobotPlacementMode && it.wallType == com.example.a10x_assign.data.WallType.FLOOR -> {
+                                        // Place robot at the tapped floor location
+                                        viewModel.placeRobot(it.worldX, it.worldY, it.worldZ, 0f)
+                                        viewModel.toggleRobotPlacementMode()
+
+                                        // Show feedback
+                                        Toast.makeText(
+                                            requireContext(),
+                                            "Robot placed at floor location",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@setOnTouchListener true
+                                    }
+                                    // Annotation mode - place on walls
+                                    state.isAnnotationMode -> {
+                                        // Add annotation at the touched location
+                                        viewModel.addAnnotation(
+                                            wall = it.wallType,
+                                            x = it.x,
+                                            y = it.y,
+                                            width = 0.15f,  // Default size
+                                            height = 0.15f
+                                        )
+
+                                        // Show feedback
+                                        Toast.makeText(
+                                            requireContext(),
+                                            "Annotation added to ${it.wallType.name}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@setOnTouchListener true
+                                    }
+                                }
+                            }
+
+                            // If in robot placement mode but didn't hit floor, show message
+                            if (state.isRobotPlacementMode && (hit == null || hit.wallType != com.example.a10x_assign.data.WallType.FLOOR)) {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Tap on the floor to place robot",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                return@setOnTouchListener true
+                            }
+                        }
+
+                        // Consume the event if it was a tap, otherwise let it through
+                        isTap
+                    }
+
+                    else -> false
                 }
             }
         }
@@ -127,14 +269,18 @@ class RoomViewerFragment : Fragment() {
                         glSurfaceView.renderer.annotations = state.annotations
                     }
 
-                    // Handle robot placement mode
-                    LaunchedEffect(state.isRobotPlacementMode) {
-                        if (state.isRobotPlacementMode) {
-                            // Simple placement at center of room floor
-                            viewModel.placeRobot(0f, -1.5f, 0f, 0f)
-                            viewModel.toggleRobotPlacementMode()
+                    // Update wall render mode in room
+                    LaunchedEffect(state.wallRenderMode) {
+                        glSurfaceView.renderer.room.renderMode = when (state.wallRenderMode) {
+                            WallRenderMode.FLAT -> 0
+                            WallRenderMode.MESH -> 1
+                            WallRenderMode.WIREFRAME -> 2
                         }
                     }
+
+                    // Handle robot placement mode
+                    // Robot placement now happens via tap on floor in touch interceptor
+                    // No automatic placement needed here
 
                     RoomViewerUI(
                         state = state,
@@ -143,7 +289,8 @@ class RoomViewerFragment : Fragment() {
                         onAnnotationTypeSelected = { viewModel.setAnnotationType(it) },
                         onAnnotationListToggle = { viewModel.toggleAnnotationList() },
                         onDeleteAnnotation = { viewModel.deleteAnnotation(it) },
-                        onClearRobot = { viewModel.clearRobot() }
+                        onClearRobot = { viewModel.clearRobot() },
+                        onToggleMeshWalls = { viewModel.toggleMeshWalls() }
                     )
                 }
             }
@@ -166,6 +313,15 @@ class RoomViewerFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         glSurfaceView.onResume()
+
+        // Ensure robot position is refreshed when resuming
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.uiState.collect { state ->
+                    glSurfaceView.renderer.robotPosition = state.robotPosition
+                }
+            }
+        }
     }
 
     override fun onPause() {
@@ -182,7 +338,8 @@ fun RoomViewerUI(
     onAnnotationTypeSelected: (AnnotationType) -> Unit,
     onAnnotationListToggle: () -> Unit,
     onDeleteAnnotation: (com.example.a10x_assign.data.AnnotationEntity) -> Unit,
-    onClearRobot: () -> Unit
+    onClearRobot: () -> Unit,
+    onToggleMeshWalls: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Top toolbar
@@ -207,6 +364,23 @@ fun RoomViewerUI(
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = onToggleMeshWalls,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = when (state.wallRenderMode) {
+                                WallRenderMode.FLAT -> Color(0xFF424242)
+                                WallRenderMode.MESH -> Color(0xFF9C27B0)
+                                WallRenderMode.WIREFRAME -> Color(0xFF00BCD4)
+                            }
+                        )
+                    ) {
+                        Text(when (state.wallRenderMode) {
+                            WallRenderMode.FLAT -> "Flat Walls"
+                            WallRenderMode.MESH -> "Mesh Walls"
+                            WallRenderMode.WIREFRAME -> "Wireframe"
+                        })
+                    }
+
                     Button(
                         onClick = onAnnotationListToggle,
                         colors = ButtonDefaults.buttonColors(
@@ -295,6 +469,15 @@ fun RoomViewerUI(
                     Text(
                         "✓ Annotation mode active: Tap any wall to place ${state.selectedAnnotationType.name.replace("_", " ")}",
                         color = Color(0xFF4CAF50),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
+                if (state.isRobotPlacementMode) {
+                    Text(
+                        "✓ Robot placement active: Tap the floor to place robot",
+                        color = Color(0xFFFF9800),
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(top = 8.dp)
                     )

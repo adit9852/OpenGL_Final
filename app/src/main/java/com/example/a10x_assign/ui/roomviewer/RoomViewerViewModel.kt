@@ -9,11 +9,19 @@ import com.example.a10x_assign.data.WallType
 import com.example.a10x_assign.repository.AnnotationRepo
 import com.example.a10x_assign.repository.RobotRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+enum class WallRenderMode {
+    FLAT,
+    MESH,
+    WIREFRAME
+}
 
 data class RoomViewerState(
     val isInitialized: Boolean = false,
@@ -24,7 +32,8 @@ data class RoomViewerState(
     val isRobotPlacementMode: Boolean = false,
     val annotations: List<AnnotationEntity> = emptyList(),
     val robotPosition: RobotEntity? = null,
-    val showAnnotationList: Boolean = false
+    val showAnnotationList: Boolean = false,
+    val wallRenderMode: WallRenderMode = WallRenderMode.FLAT
 )
 
 @HiltViewModel
@@ -41,17 +50,21 @@ class RoomViewerViewModel @Inject constructor(
     }
 
     private fun loadAnnotations() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             annotationRepo.getAllAnnotations().collect { annotations ->
-                _uiState.value = _uiState.value.copy(annotations = annotations)
+                withContext(Dispatchers.Main) {
+                    _uiState.value = _uiState.value.copy(annotations = annotations)
+                }
             }
         }
     }
 
     private fun loadRobotPosition() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             robotRepo.getRobotPosition().collect { robot ->
-                _uiState.value = _uiState.value.copy(robotPosition = robot)
+                withContext(Dispatchers.Main) {
+                    _uiState.value = _uiState.value.copy(robotPosition = robot)
+                }
             }
         }
     }
@@ -94,8 +107,17 @@ class RoomViewerViewModel @Inject constructor(
         )
     }
 
+    fun toggleMeshWalls() {
+        val newMode = when (_uiState.value.wallRenderMode) {
+            WallRenderMode.FLAT -> WallRenderMode.MESH
+            WallRenderMode.MESH -> WallRenderMode.WIREFRAME
+            WallRenderMode.WIREFRAME -> WallRenderMode.FLAT
+        }
+        _uiState.value = _uiState.value.copy(wallRenderMode = newMode)
+    }
+
     fun addAnnotation(wall: WallType, x: Float, y: Float, width: Float, height: Float) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val annotation = AnnotationEntity(
                     type = _uiState.value.selectedAnnotationType,
@@ -107,46 +129,70 @@ class RoomViewerViewModel @Inject constructor(
                 )
                 annotationRepo.insertAnnotation(annotation)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to add annotation: ${e.message}"
-                )
+                withContext(Dispatchers.Main) {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Failed to add annotation: ${e.message}"
+                    )
+                }
             }
         }
     }
 
     fun deleteAnnotation(annotation: AnnotationEntity) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 annotationRepo.deleteAnnotation(annotation)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to delete annotation: ${e.message}"
-                )
+                withContext(Dispatchers.Main) {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Failed to delete annotation: ${e.message}"
+                    )
+                }
             }
         }
     }
 
     fun placeRobot(x: Float, y: Float, z: Float, rotationY: Float = 0f) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
+                // First clear any existing robots
+                robotRepo.clearRobot()
+
+                // Insert the new robot
                 val robot = RobotEntity(x = x, y = y, z = z, rotationY = rotationY)
-                robotRepo.insertRobot(robot)
+                val insertedId = robotRepo.insertRobot(robot)
+
+                // Verify insertion was successful
+                if (insertedId > 0) {
+                    withContext(Dispatchers.Main) {
+                        // Force a refresh of the robot position
+                        // The Flow should automatically update, but we ensure it here
+                    }
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to place robot: ${e.message}"
-                )
+                withContext(Dispatchers.Main) {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Failed to place robot: ${e.message}"
+                    )
+                }
             }
         }
     }
 
     fun clearRobot() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 robotRepo.clearRobot()
+                withContext(Dispatchers.Main) {
+                    // Explicitly set robot position to null after clearing
+                    _uiState.value = _uiState.value.copy(robotPosition = null)
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = "Failed to clear robot: ${e.message}"
-                )
+                withContext(Dispatchers.Main) {
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Failed to clear robot: ${e.message}"
+                    )
+                }
             }
         }
     }

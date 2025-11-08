@@ -5,7 +5,9 @@
       "Bash(adb logcat:*)",
       "Bash(find:*)",
       "Bash(pdftotext:*)",
-      "Bash(./gradlew assembleDebug:*)"
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(.gradlew.bat assembleDebug)",
+      "Bash(gradlew.bat assembleDebug:*)"
     ],
     "deny": [],
     "ask": []
