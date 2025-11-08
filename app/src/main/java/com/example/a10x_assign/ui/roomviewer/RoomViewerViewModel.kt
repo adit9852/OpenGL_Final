@@ -33,7 +33,8 @@ data class RoomViewerState(
     val annotations: List<AnnotationEntity> = emptyList(),
     val robotPosition: RobotEntity? = null,
     val showAnnotationList: Boolean = false,
-    val wallRenderMode: WallRenderMode = WallRenderMode.FLAT
+    val wallRenderMode: WallRenderMode = WallRenderMode.FLAT,
+    val isCameraInsideRoom: Boolean = true
 )
 
 @HiltViewModel
@@ -211,5 +212,11 @@ class RoomViewerViewModel @Inject constructor(
                 errorMessage = null
             )
         }
+    }
+
+    fun updateCameraPosition(isCameraInsideRoom: Boolean) {
+        _uiState.value = _uiState.value.copy(
+            isCameraInsideRoom = isCameraInsideRoom
+        )
     }
 }

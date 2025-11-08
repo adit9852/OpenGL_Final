@@ -116,4 +116,20 @@ class Camera @Inject constructor() {
         centerY = centerY.coerceIn(-panLimitY, panLimitY)
         centerZ = centerZ.coerceIn(-panLimitZ, panLimitZ)
     }
+
+    // Check if camera is inside the room
+    // Room dimensions: width=6, height=4, depth=8 (from Room.kt)
+    fun isInsideRoom(): Boolean {
+        val roomWidth = 6f
+        val roomHeight = 4f
+        val roomDepth = 8f
+
+        val halfWidth = roomWidth / 2
+        val halfHeight = roomHeight / 2
+        val halfDepth = roomDepth / 2
+
+        return eyeX >= -halfWidth && eyeX <= halfWidth &&
+               eyeY >= -halfHeight && eyeY <= halfHeight &&
+               eyeZ >= -halfDepth && eyeZ <= halfDepth
+    }
 }

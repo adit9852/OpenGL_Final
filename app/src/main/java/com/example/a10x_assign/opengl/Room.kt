@@ -95,35 +95,17 @@ class Room @Inject constructor() {
     private var indices: ShortArray
 
     // Render mode: 0 = flat, 1 = mesh, 2 = wireframe
+    @Volatile
     var renderMode = 0
         set(value) {
             if (field != value) {
                 field = value
-                // Recreate geometry based on mode
-                when (value) {
-                    0 -> { // Flat
-                        vertices = createRoomVertices()
-                        normals = createRoomNormals()
-                        indices = createRoomIndices()
-                    }
-                    1 -> { // Mesh
-                        vertices = createMeshWallVertices()
-                        normals = createMeshWallNormals()
-                        indices = createMeshWallIndices()
-                    }
-                    2 -> { // Wireframe
-                        vertices = createMeshWallVertices()
-                        normals = createMeshWallNormals()
-                        indices = createWireframeIndices()
-                    }
-                }
-
-                // Update buffers if already initialized
-                if (isInitialized) {
-                    updateBuffers()
-                }
+                needsBufferUpdate = true
             }
         }
+
+    @Volatile
+    private var needsBufferUpdate = false
 
     private var isInitialized = false
 
@@ -490,6 +472,32 @@ class Room @Inject constructor() {
     }
 
     fun draw(mvpMatrix: FloatArray) {
+        // Check if we need to update buffers (on GL thread)
+        if (needsBufferUpdate) {
+            // Recreate geometry based on mode
+            when (renderMode) {
+                0 -> { // Flat
+                    vertices = createRoomVertices()
+                    normals = createRoomNormals()
+                    indices = createRoomIndices()
+                }
+                1 -> { // Mesh
+                    vertices = createMeshWallVertices()
+                    normals = createMeshWallNormals()
+                    indices = createMeshWallIndices()
+                }
+                2 -> { // Wireframe
+                    vertices = createMeshWallVertices()
+                    normals = createMeshWallNormals()
+                    indices = createWireframeIndices()
+                }
+            }
+
+            // Update buffers on GL thread
+            updateBuffers()
+            needsBufferUpdate = false
+        }
+
         GLES20.glUseProgram(program)
 
         positionHandle = GLES20.glGetAttribLocation(program, "vPosition")

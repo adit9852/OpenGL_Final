@@ -50,6 +50,11 @@ class RoomViewerFragment : Fragment() {
         // Create a FrameLayout to hold both GL and Compose views
         val frameLayout = FrameLayout(requireContext())
 
+        // Set up camera position callback
+        glSurfaceView.renderer.onCameraPositionChanged = { isInside ->
+            viewModel.updateCameraPosition(isInside)
+        }
+
         // Add GLSurfaceView
         frameLayout.addView(
             glSurfaceView,
@@ -290,7 +295,8 @@ class RoomViewerFragment : Fragment() {
                         onAnnotationListToggle = { viewModel.toggleAnnotationList() },
                         onDeleteAnnotation = { viewModel.deleteAnnotation(it) },
                         onClearRobot = { viewModel.clearRobot() },
-                        onToggleMeshWalls = { viewModel.toggleMeshWalls() }
+                        onToggleMeshWalls = { viewModel.toggleMeshWalls() },
+                        onCancelRobotPlacement = { viewModel.toggleRobotPlacementMode() }
                     )
                 }
             }
@@ -339,7 +345,8 @@ fun RoomViewerUI(
     onAnnotationListToggle: () -> Unit,
     onDeleteAnnotation: (com.example.a10x_assign.data.AnnotationEntity) -> Unit,
     onClearRobot: () -> Unit,
-    onToggleMeshWalls: () -> Unit
+    onToggleMeshWalls: () -> Unit,
+    onCancelRobotPlacement: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Top toolbar
@@ -357,11 +364,27 @@ fun RoomViewerUI(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    "Robot Operator",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge
-                )
+                Column {
+                    Text(
+                        "Robot Operator",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    // Camera position indicator (below Robot Operator title)
+                    Surface(
+                        modifier = Modifier.padding(top = 8.dp),
+                        color = if (state.isCameraInsideRoom) Color(0xCC4CAF50) else Color(0xCCFF5722),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = if (state.isCameraInsideRoom) "Inside Room" else "Outside Room",
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
@@ -447,10 +470,10 @@ fun RoomViewerUI(
                         onClick = onRobotPlacementToggle,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF9800)
+                            containerColor = if (state.isRobotPlacementMode) Color(0xFFF44336) else Color(0xFFFF9800)
                         )
                     ) {
-                        Text("Place Robot")
+                        Text(if (state.isRobotPlacementMode) "Cancel Place" else "Place Robot")
                     }
 
                     if (state.robotPosition != null) {

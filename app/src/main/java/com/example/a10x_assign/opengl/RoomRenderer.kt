@@ -28,6 +28,9 @@ class RoomRenderer @Inject constructor(
     private var viewportWidth: Int = 0
     private var viewportHeight: Int = 0
 
+    // Callback for camera position changes
+    var onCameraPositionChanged: ((Boolean) -> Unit)? = null
+
     fun setContext(context: android.content.Context) {
         this.context = context
     }
@@ -76,6 +79,9 @@ class RoomRenderer @Inject constructor(
 
         // Get the combined projection and view matrix
         val vpMatrix = camera.getVPMatrix()
+
+        // Check if camera is inside room and notify
+        onCameraPositionChanged?.invoke(camera.isInsideRoom())
 
         // Draw the room
         room.draw(vpMatrix)
