@@ -14,11 +14,12 @@ An intuitive Android app that lets you visualize construction site rooms in 3D, 
 ## 🎯 Quick Start
 ### 📱 Download APK
 [Download the latest APK](Apk/10X_assign.apk)
+  Click view raw to download apk file.
 
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone(https://github.com/adit9852/OpenGL_Final)
 
 # Open in Android Studio and sync dependencies
 
