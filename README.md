@@ -2,6 +2,19 @@
 
 An intuitive Android app that lets you visualize construction site rooms in 3D, annotate walls with work areas, and place robots - all powered by OpenGL ES and modern Android architecture.
 
+<h2 align="center">🎥 Project Demo Video</h2>
+
+<p align="center">
+  <a href="https://youtu.be/Nq4MBZ0mCZk?si=XCak05pDgomhHSyk">
+    <img src="https://img.youtube.com/vi/Nq4MBZ0mCZk/maxresdefault.jpg" width="70%">
+  </a>
+</p>
+
+### 📱 Download APK
+[Download the latest APK](Apk/10X_assign.apk)
+  Click view raw to download apk file.
+
+
 ## ✨ What Can You Do?
 
 - **Explore in 3D**: Navigate a realistic construction room with smooth camera controls
@@ -12,10 +25,6 @@ An intuitive Android app that lets you visualize construction site rooms in 3D, 
 - **Save Everything**: All your work is automatically saved to local storage
 
 ## 🎯 Quick Start
-### 📱 Download APK
-[Download the latest APK](Apk/10X_assign.apk)
-  Click view raw to download apk file.
-
 
 ```bash
 # Clone the repository
