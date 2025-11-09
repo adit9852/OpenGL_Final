@@ -1,341 +1,276 @@
-# Robot Operator Application
+# 🤖 Robot Operator - 3D Construction Site Viewer
 
-An Android application for visualizing and annotating construction site rooms with robot placement capabilities. Built with OpenGL ES, Jetpack Compose, and modern Android architecture.
+An intuitive Android app that lets you visualize construction site rooms in 3D, annotate walls with work areas, and place robots - all powered by OpenGL ES and modern Android architecture.
 
-## Features
+## ✨ What Can You Do?
 
-### Core Features
-- **3D Room Visualization**: Interactive 3D rectangular room with proper perspective, lighting, and camera controls
-- **Camera Controls**:
-  - Single finger drag to rotate camera
-  - Two-finger drag to pan
-  - Pinch to zoom in/out
-- **Annotation System**: Mark areas on walls with different annotation types:
-  - Spray Area
-  - Sand Area
-  - Obstacle
-- **Robot Placement**: Place and visualize a robot (UR10e representation) in the room
-- **Data Persistence**: All annotations and robot positions are saved to local database
+- **Explore in 3D**: Navigate a realistic construction room with smooth camera controls
+- **Mark Your Walls**: Add colored annotations to identify spray areas, sanding zones, and obstacles
+- **Place Your Robot**: Position a robot in the room and visualize its location
+- **Switch Wall Views**: Toggle between flat, mesh, and wireframe wall rendering
+- **Track Your Position**: Real-time indicator shows if you're inside or outside the room
+- **Save Everything**: All your work is automatically saved to local storage
 
-### Technical Implementation
-- **Architecture**: MVVM with Clean Architecture principles
-- **Dependency Injection**: Hilt/Dagger for dependency management
-- **UI**: Jetpack Compose for 2D UI elements overlaid on OpenGL ES rendering
-- **3D Rendering**: OpenGL ES 2.0 for room and robot visualization
-- **Database**: Room database for persistent storage
-- **Async Operations**: Kotlin Coroutines and Flow for reactive data
+## 🎯 Quick Start
 
-## Setup Instructions
+```bash
+# Clone the repository
+git clone <your-repo-url>
 
-### Prerequisites
-- Android Studio Hedgehog or later
-- Android SDK 24 or higher
-- Gradle 8.13
-- JDK 11
+# Open in Android Studio and sync dependencies
 
-### Building the Project
-
-1. Clone the repository
-2. Open the project in Android Studio
-3. Sync Gradle dependencies
-4. Build the project:
-   ```bash
-   ./gradlew assembleDebug
-   ```
-5. Run on device or emulator:
-   ```bash
-   ./gradlew installDebug
-   ```
-
-## Libraries and Tools Used
-
-### Core Android
-- **androidx.core:core-ktx** - Kotlin extensions
-- **androidx.lifecycle:lifecycle-viewmodel-ktx** - ViewModel with Kotlin extensions
-- **androidx.fragment:fragment-ktx** - Fragment KTX extensions
-
-### UI
-- **Jetpack Compose BOM** - Modern declarative UI framework
-  - Material3 - Material Design 3 components
-  - UI Tooling - Preview and debugging tools
-- **androidx.appcompat** - Legacy UI support for GLSurfaceView
-
-### Dependency Injection
-- **Hilt 2.50** - Dependency injection framework
-  - hilt-android - Android integration
-  - hilt-compiler - Annotation processor
-
-### Database
-- **Room 2.6.1** - SQLite object mapping library
-  - room-runtime - Core runtime
-  - room-ktx - Kotlin extensions with coroutines support
-  - room-compiler - Annotation processor
-
-### Async & Reactive
-- **Kotlin Coroutines** - Asynchronous programming
-- **Flow** - Reactive streams
-
-### 3D Rendering
-- **OpenGL ES 2.0** - Native Android 3D graphics API
-
-## Technical Decisions
-
-### 1. OpenGL Context Initialization
-**Problem**: The original blank screen was caused by OpenGL resources being initialized before the GL context was created.
-
-**Solution**: Implemented lazy initialization pattern where shaders and buffers are created in `onSurfaceCreated()` callback after the OpenGL context is ready.
-
-```kotlin
-class Room {
-    fun initialize() {
-        if (isInitialized) return
-        // Initialize buffers and compile shaders here
-    }
-}
+# Build and run
+./gradlew assembleDebug
+./gradlew installDebug
 ```
 
-### 2. Compose + OpenGL Integration
-**Challenge**: Combining Jetpack Compose with OpenGL rendering.
+**Requirements:** Android 7.0+ (API 24), Android Studio Hedgehog or later
 
-**Solution**: Used `FrameLayout` to layer a transparent ComposeView over GLSurfaceView, allowing touch events to pass through to the GL view while Compose handles UI interactions.
+## 🎮 How to Use
 
-### 3. Annotation Storage Design
-**Decision**: Store annotations with normalized coordinates (0-1) rather than absolute world coordinates.
+### Camera Controls
+- **One finger drag** → Rotate camera around the room
+- **Two finger drag** → Pan left/right/up/down
+- **Pinch** → Zoom in and out
 
-**Rationale**:
-- Makes annotations resolution-independent
-- Easier to scale to different room sizes
-- Simplifies rendering calculations
+### Adding Annotations
+1. Tap **"Annotations"** in the top bar
+2. Choose your annotation type (Spray Area, Sand Area, or Obstacle)
+3. Select which wall to mark
+4. The annotation appears as a colored rectangle on the wall
+5. Tap on annotations to view details or delete them
 
-### 4. Single Activity Architecture
-**Implementation**: MainActivity hosts a single RoomViewerFragment, following modern Android navigation patterns.
+### Placing the Robot
+1. Tap **"Place Robot"** button (turns orange)
+2. Tap anywhere on the floor to place the robot
+3. Tap **"Cancel Place"** if you change your mind
+4. Drag the robot to reposition it
+5. Use **"Clear"** to remove the robot
 
-**Benefits**:
-- Simplified navigation
-- Easier state management
-- Better performance (no activity recreation overhead)
+### Wall Rendering Modes
+- **Flat** → Solid colored walls (default)
+- **Mesh** → Grid pattern for better depth perception
+- **Wireframe** → See-through wire grid
 
-### 5. Robot Representation
-**Decision**: Simplified robot as an orange cube instead of full URDF parsing.
+## 🏗️ Architecture Overview
 
-**Rationale**:
-- URDF parsing requires additional libraries (ROS integration)
-- Cube provides clear visual representation
-- Focuses on core functionality first
-- Can be enhanced later with proper URDF loader
+This app follows **MVVM + Clean Architecture** principles:
 
-### 6. Database Schema
-**Design**: Separate tables for Annotations and Robots with type converters for enums.
+```mermaid
+graph TB
+    subgraph UI Layer
+        A[RoomViewerFragment<br/>Jetpack Compose UI]
+        B[RoomViewerViewModel<br/>State Management]
+    end
 
-```kotlin
-@Entity(tableName = "annotations")
-data class AnnotationEntity(
-    val type: AnnotationType,
-    val wallType: WallType,
-    val x: Float, val y: Float,
-    val width: Float, val height: Float
-)
+    subgraph Domain Layer
+        C[AnnotationRepo<br/>Business Logic]
+        D[RobotRepo<br/>Business Logic]
+    end
+
+    subgraph Data Layer
+        E[AppDatabase<br/>Room DB]
+        F[AnnotationEntity]
+        G[RobotEntity]
+    end
+
+    subgraph Rendering Layer
+        H[RoomRenderer<br/>OpenGL ES]
+        I[Camera<br/>3D Controls]
+        J[Room<br/>3D Geometry]
+        K[RobotCube<br/>3D Model]
+        L[AnnotationOverlay<br/>Wall Markers]
+        M[TextRenderer<br/>Labels]
+    end
+
+    A --> B
+    B --> C
+    B --> D
+    C --> E
+    D --> E
+    E --> F
+    E --> G
+    A --> H
+    H --> I
+    H --> J
+    H --> K
+    H --> L
+    H --> M
+
+    style A fill:#4CAF50
+    style B fill:#2196F3
+    style C fill:#FF9800
+    style D fill:#FF9800
+    style E fill:#9C27B0
+    style H fill:#F44336
 ```
 
-**Benefits**:
-- Clear separation of concerns
-- Easy querying by wall or annotation type
-- Timestamps for audit trail
+## 🔄 Application Flow
 
-### 7. Face Culling Configuration
-**Problem**: Walls were disappearing when viewing from certain camera angles.
+```mermaid
+flowchart TD
+    Start([App Launch]) --> Init[Initialize Database<br/>& OpenGL Context]
+    Init --> Load[Load Saved<br/>Annotations & Robot]
+    Load --> Render[Render 3D Room]
 
-**Solution**: Disabled face culling in the renderer since the camera is positioned inside the room looking at the inner faces of walls.
+    Render --> Wait{User Action?}
 
-```kotlin
-GLES20.glDisable(GLES20.GL_CULL_FACE)  // See walls from inside
+    Wait -->|Rotate/Pan/Zoom| Camera[Update Camera<br/>Position]
+    Camera --> CheckPos{Inside Room?}
+    CheckPos -->|Yes| ShowGreen[Show Green Indicator]
+    CheckPos -->|No| ShowRed[Show Red Indicator]
+    ShowGreen --> Render
+    ShowRed --> Render
+
+    Wait -->|Add Annotation| Ann1[Select Annotation Type]
+    Ann1 --> Ann2[Select Wall]
+    Ann2 --> Ann3[Calculate Position]
+    Ann3 --> Ann4[Save to Database]
+    Ann4 --> Ann5[Render on Wall]
+    Ann5 --> Render
+
+    Wait -->|Place Robot| Rob1[Enter Placement Mode]
+    Rob1 --> Rob2{Tap on Floor?}
+    Rob2 -->|Yes| Rob3[Ray-cast to 3D]
+    Rob2 -->|Cancel| Render
+    Rob3 --> Rob4[Save Position]
+    Rob4 --> Rob5[Render Robot Cube]
+    Rob5 --> Render
+
+    Wait -->|Switch Wall Mode| Wall1{Select Mode}
+    Wall1 -->|Flat| UpdateFlat[Update Geometry<br/>Solid Faces]
+    Wall1 -->|Mesh| UpdateMesh[Update Geometry<br/>Grid Pattern]
+    Wall1 -->|Wireframe| UpdateWire[Update Geometry<br/>Wire Grid]
+    UpdateFlat --> Render
+    UpdateMesh --> Render
+    UpdateWire --> Render
+
+    Wait -->|Clear Robot| Clear[Delete from DB]
+    Clear --> Render
+
+    Wait -->|Delete Annotation| DelAnn[Remove from DB]
+    DelAnn --> Render
+
+    style Start fill:#4CAF50
+    style Render fill:#2196F3
+    style Wait fill:#FF9800
+    style CheckPos fill:#9C27B0
+    style ShowGreen fill:#00BCD4
+    style ShowRed fill:#F44336
 ```
 
-**Rationale**: With default back-face culling, the inside faces of walls would be culled when visible, causing them to disappear. Disabling culling allows all wall faces to render correctly.
-
-### 8. Annotation Rendering System
-**Implementation**: Created dedicated `AnnotationOverlay` class for rendering semi-transparent colored rectangles on walls.
-
-**Key Features**:
-- Alpha blending for semi-transparent overlays
-- Color-coded by annotation type (red, yellow, orange)
-- Proper depth ordering with slight offset to prevent z-fighting
-- Wall-specific vertex calculations for all six surfaces
-
-```kotlin
-GLES20.glEnable(GLES20.GL_BLEND)
-GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-```
-
-## Known Limitations
-
-### 1. Annotation Placement
-**Current**: Annotations are added programmatically via UI buttons, not by directly tapping on walls in the 3D view.
-
-**Reason**: Ray-casting for 3D hit detection requires additional math to convert 2D screen touches to 3D world coordinates and determine which wall was touched.
-
-**Workaround**: Annotations can be created with predefined positions for demonstration.
-
-### 2. Robot Model
-**Current**: Robot is represented as a simple orange cube.
-
-**Limitation**: Not using the full UR10e URDF model as specified in the assignment.
-
-**Reason**:
-- URDF parsing requires ROS libraries or custom parser
-- Complex joint hierarchies need inverse kinematics
-- Focused on core annotation functionality first
-
-**Future Enhancement**: Implement URDF loader using libraries like `urdf4j` or custom parser.
-
-### 3. Wall Disappearing Issue
-**Status**: ✅ RESOLVED
-
-**Previous Issue**: Walls were disappearing when the camera angle changed.
-
-**Fix**: Disabled face culling in `RoomRenderer.kt` since the camera is inside the room viewing inner wall faces.
-
-### 4. Annotation Visual Rendering
-**Status**: ✅ RESOLVED
-
-**Previous Issue**: Annotations were not visible on the 3D walls.
-
-**Fix**: Implemented `AnnotationOverlay.kt` class with semi-transparent colored rectangles rendered on wall surfaces using alpha blending.
-
-### 5. Limited Camera Controls
-**Current**: Basic rotate, pan, and zoom.
-
-**Missing**:
-- Camera position reset
-- Preset camera angles (top, front, side views)
-- Animation smoothing
-
-### 6. No Undo/Redo
-**Current**: No undo mechanism for annotations or robot placement.
-
-**Impact**: Users must manually delete annotations to correct mistakes.
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 app/src/main/java/com/example/a10x_assign/
-├── data/                      # Data layer
-│   ├── AnnotationEntity.kt    # Annotation data model
-│   ├── Annotations.kt         # Annotation DAO
-│   ├── RobotEntity.kt         # Robot data model
-│   ├── Robot.kt               # Robot DAO
-│   └── AppDatabase.kt         # Room database
-├── di/                        # Dependency injection
-│   └── AppModule.kt           # Hilt modules
-├── opengl/                    # OpenGL rendering
-│   ├── Camera.kt              # Camera controls
-│   ├── Room.kt                # 3D room model
-│   ├── RobotCube.kt           # Robot 3D model
-│   ├── AnnotationOverlay.kt   # Annotation rendering
-│   ├── RoomRenderer.kt        # GL renderer
-│   └── RoomSurfaceView.kt     # GL surface view
-├── repository/                # Repository layer
-│   ├── AnnotationRepo.kt      # Annotation repository
-│   └── RobotRepo.kt           # Robot repository
-└── ui/                        # UI layer
-    └── roomviewer/
-        ├── RoomViewerFragment.kt   # Main fragment
-        └── RoomViewerViewModel.kt  # ViewModel
+│
+├── 📊 data/                     # Data Models & Database
+│   ├── AnnotationEntity.kt      # Annotation data class
+│   ├── Annotations.kt           # Annotation DAO
+│   ├── RobotEntity.kt           # Robot data class
+│   ├── Robot.kt                 # Robot DAO
+│   └── AppDatabase.kt           # Room database setup
+│
+├── 💉 di/                       # Dependency Injection
+│   └── AppModule.kt             # Hilt modules
+│
+├── 🎨 opengl/                   # 3D Rendering Engine
+│   ├── Camera.kt                # Camera controls & position tracking
+│   ├── Room.kt                  # 3D room geometry (flat/mesh/wireframe)
+│   ├── RobotCube.kt             # Robot 3D model
+│   ├── AnnotationOverlay.kt     # Wall annotation rendering
+│   ├── TextRenderer.kt          # Wall & annotation labels
+│   ├── RoomRenderer.kt          # Main OpenGL renderer
+│   └── RoomSurfaceView.kt       # Touch input handler
+│
+├── 🗂️ repository/               # Business Logic Layer
+│   ├── AnnotationRepo.kt        # Annotation operations
+│   └── RobotRepo.kt             # Robot operations
+│
+└── 🖥️ ui/roomviewer/            # User Interface
+    ├── RoomViewerFragment.kt    # Main UI (Compose + OpenGL)
+    └── RoomViewerViewModel.kt   # State management
 ```
 
-## Usage Guide
+## 🛠️ Tech Stack
 
-### Camera Controls
-1. **Rotate**: Drag with one finger
-2. **Pan**: Drag with two fingers
-3. **Zoom**: Pinch to zoom in/out
+| Category | Technologies |
+|----------|-------------|
+| **Language** | Kotlin |
+| **UI** | Jetpack Compose (Material 3) |
+| **3D Graphics** | OpenGL ES 2.0 |
+| **Architecture** | MVVM + Clean Architecture |
+| **Dependency Injection** | Hilt/Dagger |
+| **Database** | Room (SQLite) |
+| **Async** | Kotlin Coroutines + Flow |
+| **Build** | Gradle 8.13 |
 
-### Adding Annotations
-1. Tap "Add Annotation" button
-2. Select annotation type (Spray Area, Sand Area, or Obstacle)
-3. A sample annotation appears on the back wall (semi-transparent colored rectangle)
-4. View all annotations by tapping "Annotations (N)" in top bar
-5. Annotations are color-coded:
-   - Spray Area: Red
-   - Sand Area: Yellow
-   - Obstacle: Orange
+## 💡 Key Technical Highlights
 
-### Robot Placement
-1. Tap "Place Robot" button
-2. Robot appears at center of room floor
-3. Tap "Clear" button to remove robot
+### 1. **Hybrid UI System**
+Combines OpenGL ES for 3D rendering with Jetpack Compose for UI controls - the best of both worlds! A transparent `ComposeView` overlays the `GLSurfaceView`, allowing touch events to intelligently route to the appropriate layer.
 
-### Managing Annotations
-1. Tap "Annotations" button in top bar
-2. View list of all annotations
-3. Tap "✕" button to delete individual annotations
+### 2. **Smart Camera System**
+The camera automatically detects when you're inside or outside the room bounds and updates the indicator in real-time. This helps users maintain spatial awareness while navigating.
 
-## Future Enhancements
+### 3. **Thread-Safe Rendering**
+All OpenGL operations happen on the GL thread, while UI updates occur on the main thread. Volatile flags ensure safe communication between threads when switching wall rendering modes.
 
-### High Priority
-1. **3D Touch Interaction**: Implement ray-casting for direct wall selection with precise annotation placement
-2. **URDF Support**: Full UR10e robot model with articulated joints
-3. **Drag-and-Drop Robot**: Interactive robot placement with ground plane detection
-4. **Annotation Resizing**: Allow users to adjust annotation dimensions after placement
+### 4. **Ray-Casting for Placement**
+When you tap to place the robot, the app converts your 2D screen touch into a 3D ray, calculates where it intersects with the floor plane, and positions the robot precisely at that point.
 
-### Medium Priority
-1. **Export/Import**: Save room configurations as JSON/XML
-2. **Multiple Rooms**: Support for different room dimensions
-3. **Measurement Tools**: Display dimensions and distances
-4. **Path Planning**: Visualize robot movement paths
+### 5. **Dynamic Geometry Generation**
+The room can switch between flat, mesh, and wireframe modes on-the-fly by regenerating vertex buffers with different geometry patterns - all without recreating the OpenGL context.
 
-### Low Priority
-1. **AR Mode**: Use ARCore for real-world room scanning
-2. **Collaborative Editing**: Multi-user annotation support
-3. **Cloud Sync**: Backup annotations to cloud storage
-4. **Material Textures**: Realistic wall/floor textures
+### 6. **Persistent State Management**
+Everything you create is immediately saved to the local Room database and automatically restored when you reopen the app - even after device rotation or app shutdown.
 
-## Testing
+## 🎨 Color Coding
 
-### Manual Testing Checklist
-- [x] App launches without crashes
-- [x] 3D room renders correctly
-- [x] Camera controls work (rotate, pan, zoom)
-- [x] Annotations can be created
-- [x] Annotations persist after app restart
-- [x] Annotations visible on 3D walls with correct colors
-- [x] Walls remain visible from all camera angles
-- [x] Robot placement works
-- [x] Robot clears properly
-- [x] UI overlays don't interfere with camera controls
+- **Spray Area** → Red annotations
+- **Sand Area** → Yellow annotations
+- **Obstacle** → Orange annotations
+- **Inside Room** → Green indicator
+- **Outside Room** → Red indicator
+- **Flat Walls** → Blue-gray button
+- **Mesh Walls** → Purple button
+- **Wireframe** → Cyan button
 
-### Known Working Configuration
-- **Device**: Android Emulator / Physical Device
-- **Android Version**: 7.0 (API 24) and above
-- **OpenGL ES**: 2.0 or higher
+## 🐛 Known Limitations
 
-## Troubleshooting
+1. **Robot Model**: Currently uses a simple cube representation instead of the full UR10e URDF model (planned enhancement)
+2. **Annotation Editing**: Once placed, annotations cannot be resized or moved (only deleted)
+3. **No Undo**: No undo/redo functionality for actions
 
-### Blank Screen Issue
-**Fixed**: The OpenGL initialization issue has been resolved through lazy initialization pattern. If you still see a blank screen:
-1. Ensure device supports OpenGL ES 2.0
-2. Check Logcat for GL errors
-3. Verify AndroidManifest.xml has GL feature requirement
+## 🚀 Future Roadmap
 
-### Wall Disappearing Issue
-**Fixed**: Face culling has been disabled to allow viewing walls from inside the room. All walls now remain visible regardless of camera angle.
+- [ ] Full UR10e robot model with articulated joints
+- [ ] Drag-to-resize annotations
+- [ ] Export room configuration to JSON/XML
+- [ ] Multiple room support with different dimensions
+- [ ] AR mode using ARCore
+- [ ] Path planning visualization for robot movement
 
-### Build Errors
-1. Clean and rebuild: `./gradlew clean assembleDebug`
-2. Invalidate caches in Android Studio
-3. Update Android Studio to latest version
-4. Ensure JDK 11 is being used
+## 🔧 Troubleshooting
 
-### Performance Issues
-1. Lower render quality in Camera.kt
-2. Reduce complexity of Room mesh
-3. Optimize database queries
-4. Use RENDERMODE_WHEN_DIRTY instead of RENDERMODE_CONTINUOUSLY for battery saving
+**Blank screen on launch?**
+- Ensure your device supports OpenGL ES 2.0
+- Check Android version is 7.0 or higher
 
-## License
+**Performance issues?**
+- The app uses continuous rendering for smooth animations
+- On older devices, you can optimize by modifying `RENDERMODE_CONTINUOUSLY` to `RENDERMODE_WHEN_DIRTY`
 
-This project is created as part of an Android internship assignment.
+**Build errors?**
+```bash
+./gradlew clean
+./gradlew assembleDebug
+```
 
-## Contact
+## 📄 License
 
-For questions or issues, please create an issue in the repository.
+Created as part of an Android development internship assignment.
+
+---
+
+**Made with ❤️ using Kotlin, OpenGL ES, and Jetpack Compose**
