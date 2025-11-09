@@ -286,4 +286,4 @@ Created as part of an Android development internship assignment.
 
 ---
 
-**Made with ❤️ using Kotlin, OpenGL ES, and Jetpack Compose**
+**Made with ❤️ using Kotlin, OpenGL ES, and Jetpack Compose** by **𝓐𝓭𝓲𝓽𝔂𝓪**
