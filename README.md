@@ -1,73 +1,104 @@
-# 🤖 Robot Operator - 3D Construction Site Viewer
+# 🤖 Robot Operator – 3D Construction Site Viewer (v2)
 
-An intuitive Android app that lets you visualize construction site rooms in 3D, annotate walls with work areas, and place robots - all powered by OpenGL ES and modern Android architecture.
+An intuitive **Android app** that lets you visualize construction rooms in 3D, mark work areas on walls, and place a robot in the scene — built with **Kotlin, OpenGL ES, and Jetpack Compose**.
 
-<h2 align="center">🎥 Project Demo Video</h2>
+---
 
-<p align="center">
-  <a href="https://youtu.be/Nq4MBZ0mCZk?si=XCak05pDgomhHSyk">
-    <img src="https://img.youtube.com/vi/Nq4MBZ0mCZk/maxresdefault.jpg" width="70%">
-  </a>
-</p>
+## 🚀 Try It Instantly
 
-### 📱 Download APK
-[Download the latest APK](Apk/10X_assign.apk)
-  Click view raw to download apk file.
+- 🎮 **Live Interactive Demo (Browser)**  
+  👉 [Open on Appetize](https://appetize.io/app/b_zjzbzpuon35dwzkjay7zhjgvi4)
 
+- 📱 **Download APK (v2)**  
+  👉 [Download openGL_V2.apk](https://github.com/adit9852/OpenGL_Final/blob/main/Apk/openGL_V2.apk)  
+  _Click **“View raw”** to download the APK._
 
-## ✨ What Can You Do?
+- 🎥 **Version 2 Video Demo**  
+  👉 [Watch V2 Demo (YouTube Short)](https://youtube.com/shorts/-3sKSWeaGA0?feature=share)
 
-- **Explore in 3D**: Navigate a realistic construction room with smooth camera controls
-- **Mark Your Walls**: Add colored annotations to identify spray areas, sanding zones, and obstacles
-- **Place Your Robot**: Position a robot in the room and visualize its location
-- **Switch Wall Views**: Toggle between flat, mesh, and wireframe wall rendering
-- **Track Your Position**: Real-time indicator shows if you're inside or outside the room
-- **Save Everything**: All your work is automatically saved to local storage
+> Older full-length demo (Version 1):  
+> [Watch V1 Demo](https://youtu.be/Nq4MBZ0mCZk?si=XCak05pDgomhHSyk)
 
-## 🎯 Quick Start
+---
 
-```bash
-# Clone the repository
-git clone(https://github.com/adit9852/OpenGL_Final)
+## ✨ Features
 
-# Open in Android Studio and sync dependencies
+- 🧱 **Explore a 3D Room**  
+  Rotate, pan, and zoom around a virtual construction room.
 
-# Build and run
-./gradlew assembleDebug
-./gradlew installDebug
-```
+- 🎯 **Mark Work Areas on Walls**  
+  Add color-coded annotations like:
+  - Spray Area (Red)  
+  - Sand Area (Yellow)  
+  - Obstacle (Orange)
 
-**Requirements:** Android 7.0+ (API 24), Android Studio Hedgehog or later
+- 🤖 **Place a Robot in the Scene**  
+  Tap on the floor to place a robot cube and visualize its position in the room.
 
-## 🎮 How to Use
+- 🧱 **Switch Wall Rendering Modes**
+  - Flat – solid walls  
+  - Mesh – grid-style walls  
+  - Wireframe – see-through structure
 
-### Camera Controls
-- **One finger drag** → Rotate camera around the room
-- **Two finger drag** → Pan left/right/up/down
-- **Pinch** → Zoom in and out
+- 🧭 **Inside/Outside Indicator**  
+  Real-time indicator shows whether the camera is **inside** or **outside** the room.
 
-### Adding Annotations
-1. Tap **"Annotations"** in the top bar
-2. Choose your annotation type (Spray Area, Sand Area, or Obstacle)
-3. Select which wall to mark
-4. The annotation appears as a colored rectangle on the wall
-5. Tap on annotations to view details or delete them
+- 💾 **Auto-Save State**  
+  All annotations and robot position are saved to **Room DB** and restored on next launch.
 
-### Placing the Robot
-1. Tap **"Place Robot"** button (turns orange)
-2. Tap anywhere on the floor to place the robot
-3. Tap **"Cancel Place"** if you change your mind
-4. Drag the robot to reposition it
-5. Use **"Clear"** to remove the robot
+---
 
-### Wall Rendering Modes
-- **Flat** → Solid colored walls (default)
-- **Mesh** → Grid pattern for better depth perception
-- **Wireframe** → See-through wire grid
+## 📱 Controls
 
-## 🏗️ Architecture Overview
+### 🎮 Camera Controls
 
-This app follows **MVVM + Clean Architecture** principles:
+- **One-finger drag** → Rotate the camera around the room  
+- **Two-finger drag** → Pan (move view left/right/up/down)  
+- **Pinch** → Zoom in/out  
+
+### 🧱 Add Annotations
+
+1. Tap **“Annotations”** in the top bar  
+2. Choose the type:
+   - Spray Area  
+   - Sand Area  
+   - Obstacle  
+3. Select the wall  
+4. A colored rectangle appears on that wall  
+5. Tap an annotation to:
+   - View details  
+   - Delete it  
+
+### 🤖 Place the Robot
+
+1. Tap **“Place Robot”** (button becomes active)  
+2. Tap on the floor to place the robot cube  
+3. (If enabled) Drag the robot to reposition  
+4. Tap **“Clear”** to remove the robot  
+
+### 🧱 Wall Rendering Modes
+
+- **Flat** – solid walls (default)  
+- **Mesh** – grid pattern for better depth perception  
+- **Wireframe** – see-through wire grid  
+
+---
+
+## 🏗️ High-Level How It Works
+
+- The app renders a **3D room** using **OpenGL ES 2.0**
+- A **Camera system** allows rotation, panning, and zoom
+- Touch input is used for:
+  - **Annotations**: mapping screen taps to wall coordinates
+  - **Robot Placement**: converting 2D tap → 3D ray → floor intersection
+- All annotation and robot data is stored using **Room Database**
+- On relaunch, data is loaded and the scene is restored automatically
+
+---
+
+## 🧬 Architecture Overview
+
+The project follows **MVVM + Clean Architecture**.
 
 ```mermaid
 graph TB
@@ -77,8 +108,8 @@ graph TB
     end
 
     subgraph Domain Layer
-        C[AnnotationRepo<br/>Business Logic]
-        D[RobotRepo<br/>Business Logic]
+        C[AnnotationRepo<br/>Annotation Logic]
+        D[RobotRepo<br/>Robot Logic]
     end
 
     subgraph Data Layer
@@ -89,10 +120,10 @@ graph TB
 
     subgraph Rendering Layer
         H[RoomRenderer<br/>OpenGL ES]
-        I[Camera<br/>3D Controls]
-        J[Room<br/>3D Geometry]
-        K[RobotCube<br/>3D Model]
-        L[AnnotationOverlay<br/>Wall Markers]
+        I[Camera<br/>3D Controls & Position]
+        J[Room<br/>Flat/Mesh/Wireframe Geometry]
+        K[RobotCube<br/>Robot 3D Model]
+        L[AnnotationOverlay<br/>Wall Annotations]
         M[TextRenderer<br/>Labels]
     end
 
@@ -116,7 +147,7 @@ graph TB
     style D fill:#FF9800
     style E fill:#9C27B0
     style H fill:#F44336
-```
+
 
 ## 🔄 Application Flow
 
