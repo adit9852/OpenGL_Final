@@ -1,97 +1,97 @@
-# 🤖 Robot Operator - 3D Construction Site Viewer
+# 🤖 Robot Operator – 3D Construction Site Viewer (v2)
 
-An intuitive Android app that lets you visualize construction site rooms in 3D, annotate walls with work areas, and place robots - all powered by OpenGL ES and modern Android architecture.
+An intuitive Android app that lets you visualize construction rooms in 3D, mark work areas on walls, and place a robot in the scene — built with **Kotlin, OpenGL ES, and Jetpack Compose**.
 
-<h2 align="center">🎥 Project Demo Video</h2>
+---
 
-<p align="center">
-  <a href="https://youtu.be/Nq4MBZ0mCZk?si=XCak05pDgomhHSyk">
-    <img src="https://img.youtube.com/vi/Nq4MBZ0mCZk/maxresdefault.jpg" width="70%">
-  </a>
-</p>
+## 🚀 Try It Instantly
 
-### 📱 Download APK
-[Download the latest APK](Apk/10X_assign.apk)
-  Click view raw to download apk file.
+- 🎮 **Live Browser Demo**  
+  https://appetize.io/app/b_zjzbzpuon35dwzkjay7zhjgvi4
 
+- 📱 **Download APK (v2)**  
+  https://github.com/adit9852/OpenGL_Final/blob/main/Apk/openGL_V2.apk  
+  _Click **“View raw”** to download._
 
-## ✨ What Can You Do?
+- 🎥 **Version 2 Demo (YouTube Short)**  
+  https://youtube.com/shorts/-3sKSWeaGA0?feature=share
 
-- **Explore in 3D**: Navigate a realistic construction room with smooth camera controls
-- **Mark Your Walls**: Add colored annotations to identify spray areas, sanding zones, and obstacles
-- **Place Your Robot**: Position a robot in the room and visualize its location
-- **Switch Wall Views**: Toggle between flat, mesh, and wireframe wall rendering
-- **Track Your Position**: Real-time indicator shows if you're inside or outside the room
-- **Save Everything**: All your work is automatically saved to local storage
+- 🎥 **Older Full-Length Demo (v1)**  
+  https://youtu.be/Nq4MBZ0mCZk?si=XCak05pDgomhHSyk
 
-## 🎯 Quick Start
+---
 
-```bash
-# Clone the repository
-git clone(https://github.com/adit9852/OpenGL_Final)
+## ✨ What You Can Do
 
-# Open in Android Studio and sync dependencies
+- 🧱 Explore a 3D construction room with smooth camera controls  
+- 🎯 Mark walls with color-coded annotations:
+  - 🔴 Spray Area
+  - 🟡 Sand Area
+  - 🟠 Obstacle
+- 🤖 Place a robot on the floor using tap-to-place ray casting  
+- 🧱 Switch wall rendering between **Flat**, **Mesh**, and **Wireframe**  
+- 🧭 See if the camera is **inside** or **outside** the room in real-time  
+- 💾 Auto-save all annotations and robot position using **Room DB**
 
-# Build and run
-./gradlew assembleDebug
-./gradlew installDebug
-```
+---
 
-**Requirements:** Android 7.0+ (API 24), Android Studio Hedgehog or later
+## 📱 Controls
 
-## 🎮 How to Use
+### 🎮 Camera
 
-### Camera Controls
-- **One finger drag** → Rotate camera around the room
-- **Two finger drag** → Pan left/right/up/down
-- **Pinch** → Zoom in and out
+- **One-finger drag** → Rotate camera around the room  
+- **Two-finger drag** → Pan camera (move left/right/up/down)  
+- **Pinch** → Zoom in/out  
 
-### Adding Annotations
-1. Tap **"Annotations"** in the top bar
-2. Choose your annotation type (Spray Area, Sand Area, or Obstacle)
-3. Select which wall to mark
-4. The annotation appears as a colored rectangle on the wall
-5. Tap on annotations to view details or delete them
+### 🧱 Annotations
 
-### Placing the Robot
-1. Tap **"Place Robot"** button (turns orange)
-2. Tap anywhere on the floor to place the robot
-3. Tap **"Cancel Place"** if you change your mind
-4. Drag the robot to reposition it
-5. Use **"Clear"** to remove the robot
+1. Tap **“Annotations”** from the top bar  
+2. Select annotation type: _Spray_, _Sand_, or _Obstacle_  
+3. Select the wall  
+4. A colored rectangle appears on that wall  
+5. Tap an annotation to view details or delete it  
 
-### Wall Rendering Modes
-- **Flat** → Solid colored walls (default)
-- **Mesh** → Grid pattern for better depth perception
-- **Wireframe** → See-through wire grid
+### 🤖 Robot Placement
+
+1. Tap **“Place Robot”** to enter placement mode  
+2. Tap on the floor to drop the robot cube  
+3. Tap **“Clear”** to remove the robot  
+
+### 🧱 Wall Modes
+
+- **Flat** → Solid-colored walls (default)  
+- **Mesh** → Grid-style walls for depth perception  
+- **Wireframe** → See-through wire grid  
+
+---
 
 ## 🏗️ Architecture Overview
 
-This app follows **MVVM + Clean Architecture** principles:
+The project follows **MVVM + Clean Architecture**.
 
 ```mermaid
 graph TB
-    subgraph UI Layer
+    subgraph UI_Layer
         A[RoomViewerFragment<br/>Jetpack Compose UI]
         B[RoomViewerViewModel<br/>State Management]
     end
 
-    subgraph Domain Layer
-        C[AnnotationRepo<br/>Business Logic]
-        D[RobotRepo<br/>Business Logic]
+    subgraph Domain_Layer
+        C[AnnotationRepo<br/>Annotation Logic]
+        D[RobotRepo<br/>Robot Logic]
     end
 
-    subgraph Data Layer
+    subgraph Data_Layer
         E[AppDatabase<br/>Room DB]
         F[AnnotationEntity]
         G[RobotEntity]
     end
 
-    subgraph Rendering Layer
+    subgraph Rendering_Layer
         H[RoomRenderer<br/>OpenGL ES]
         I[Camera<br/>3D Controls]
-        J[Room<br/>3D Geometry]
-        K[RobotCube<br/>3D Model]
+        J[Room<br/>Room Geometry]
+        K[RobotCube<br/>Robot Model]
         L[AnnotationOverlay<br/>Wall Markers]
         M[TextRenderer<br/>Labels]
     end
@@ -103,6 +103,7 @@ graph TB
     D --> E
     E --> F
     E --> G
+
     A --> H
     H --> I
     H --> J
@@ -110,180 +111,184 @@ graph TB
     H --> L
     H --> M
 
-    style A fill:#4CAF50
-    style B fill:#2196F3
-    style C fill:#FF9800
-    style D fill:#FF9800
-    style E fill:#9C27B0
-    style H fill:#F44336
-```
-
-## 🔄 Application Flow
-
-```mermaid
+🔄 Application Flow
 flowchart TD
-    Start([App Launch]) --> Init[Initialize Database<br/>& OpenGL Context]
-    Init --> Load[Load Saved<br/>Annotations & Robot]
-    Load --> Render[Render 3D Room]
+    Start([App Launch])
+    Init[Init DB & OpenGL]
+    Load[Load Saved Annotations & Robot]
+    Render[Render 3D Room]
+    Wait{User Action?}
 
-    Render --> Wait{User Action?}
+    Start --> Init --> Load --> Render --> Wait
 
-    Wait -->|Rotate/Pan/Zoom| Camera[Update Camera<br/>Position]
-    Camera --> CheckPos{Inside Room?}
-    CheckPos -->|Yes| ShowGreen[Show Green Indicator]
-    CheckPos -->|No| ShowRed[Show Red Indicator]
-    ShowGreen --> Render
-    ShowRed --> Render
+    Wait -->|Move Camera| Cam[Update Camera]
+    Cam --> Check{Inside Room?}
+    Check -->|Yes| In[Show Inside Indicator]
+    Check -->|No| Out[Show Outside Indicator]
+    In --> Render
+    Out --> Render
 
-    Wait -->|Add Annotation| Ann1[Select Annotation Type]
-    Ann1 --> Ann2[Select Wall]
-    Ann2 --> Ann3[Calculate Position]
-    Ann3 --> Ann4[Save to Database]
-    Ann4 --> Ann5[Render on Wall]
-    Ann5 --> Render
+    Wait -->|Add Annotation| A1[Select Type & Wall]
+    A1 --> A2[Compute Wall Position]
+    A2 --> A3[Save Annotation to DB]
+    A3 --> A4[Render Annotation]
+    A4 --> Render
 
-    Wait -->|Place Robot| Rob1[Enter Placement Mode]
-    Rob1 --> Rob2{Tap on Floor?}
-    Rob2 -->|Yes| Rob3[Ray-cast to 3D]
-    Rob2 -->|Cancel| Render
-    Rob3 --> Rob4[Save Position]
-    Rob4 --> Rob5[Render Robot Cube]
-    Rob5 --> Render
+    Wait -->|Place Robot| R1[Enter Placement Mode]
+    R1 --> R2{Tap on Floor?}
+    R2 -->|Yes| R3[Raycast to Floor]
+    R3 --> R4[Save Robot Position]
+    R4 --> R5[Render Robot]
+    R5 --> Render
 
-    Wait -->|Switch Wall Mode| Wall1{Select Mode}
-    Wall1 -->|Flat| UpdateFlat[Update Geometry<br/>Solid Faces]
-    Wall1 -->|Mesh| UpdateMesh[Update Geometry<br/>Grid Pattern]
-    Wall1 -->|Wireframe| UpdateWire[Update Geometry<br/>Wire Grid]
-    UpdateFlat --> Render
-    UpdateMesh --> Render
-    UpdateWire --> Render
+    Wait -->|Switch Wall Mode| W1[Update Room Geometry]
 
-    Wait -->|Clear Robot| Clear[Delete from DB]
-    Clear --> Render
 
-    Wait -->|Delete Annotation| DelAnn[Remove from DB]
-    DelAnn --> Render
-
-    style Start fill:#4CAF50
-    style Render fill:#2196F3
-    style Wait fill:#FF9800
-    style CheckPos fill:#9C27B0
-    style ShowGreen fill:#00BCD4
-    style ShowRed fill:#F44336
-```
-
-## 📁 Project Structure
-
-```
+    📁 Project Structure
 app/src/main/java/com/example/a10x_assign/
 │
-├── 📊 data/                     # Data Models & Database
-│   ├── AnnotationEntity.kt      # Annotation data class
-│   ├── Annotations.kt           # Annotation DAO
-│   ├── RobotEntity.kt           # Robot data class
-│   ├── Robot.kt                 # Robot DAO
-│   └── AppDatabase.kt           # Room database setup
+├── data/                         # Room database & entities
+│   ├── AnnotationEntity.kt       # Annotation table
+│   ├── Annotations.kt            # Annotation DAO
+│   ├── RobotEntity.kt            # Robot table
+│   ├── Robot.kt                  # Robot DAO
+│   └── AppDatabase.kt            # Room database setup
 │
-├── 💉 di/                       # Dependency Injection
-│   └── AppModule.kt             # Hilt modules
+├── di/                           # Dependency Injection
+│   └── AppModule.kt              # Hilt modules
 │
-├── 🎨 opengl/                   # 3D Rendering Engine
-│   ├── Camera.kt                # Camera controls & position tracking
-│   ├── Room.kt                  # 3D room geometry (flat/mesh/wireframe)
-│   ├── RobotCube.kt             # Robot 3D model
-│   ├── AnnotationOverlay.kt     # Wall annotation rendering
-│   ├── TextRenderer.kt          # Wall & annotation labels
-│   ├── RoomRenderer.kt          # Main OpenGL renderer
-│   └── RoomSurfaceView.kt       # Touch input handler
+├── opengl/                       # 3D Rendering Engine
+│   ├── Camera.kt                 # Camera controls & inside/outside logic
+│   ├── Room.kt                   # Room geometry (flat/mesh/wireframe)
+│   ├── RobotCube.kt              # Robot 3D model (cube)
+│   ├── AnnotationOverlay.kt      # Wall annotation rendering
+│   ├── TextRenderer.kt           # Labels for walls & annotations
+│   ├── RoomRenderer.kt           # Main OpenGL renderer
+│   └── RoomSurfaceView.kt        # GLSurfaceView + touch handling
 │
-├── 🗂️ repository/               # Business Logic Layer
-│   ├── AnnotationRepo.kt        # Annotation operations
-│   └── RobotRepo.kt             # Robot operations
+├── repository/                   # Business Logic Layer
+│   ├── AnnotationRepo.kt         # Annotation operations
+│   └── RobotRepo.kt              # Robot operations
 │
-└── 🖥️ ui/roomviewer/            # User Interface
-    ├── RoomViewerFragment.kt    # Main UI (Compose + OpenGL)
-    └── RoomViewerViewModel.kt   # State management
-```
+└── ui/roomviewer/                # User Interface
+    ├── RoomViewerFragment.kt     # Hosts Compose UI + GLSurfaceView
+    └── RoomViewerViewModel.kt    # State management & events
 
-## 🛠️ Tech Stack
+🛠️ Tech Stack
+Category	Technologies
+Language	Kotlin
+UI	Jetpack Compose (Material 3)
+3D Rendering	OpenGL ES 2.0
+Architecture	MVVM + Clean Architecture
+Dependency Inject	Hilt / Dagger
+Database	Room (SQLite)
+Async	Kotlin Coroutines + Flow
+Build System	Gradle
+💡 Key Technical Highlights
 
-| Category | Technologies |
-|----------|-------------|
-| **Language** | Kotlin |
-| **UI** | Jetpack Compose (Material 3) |
-| **3D Graphics** | OpenGL ES 2.0 |
-| **Architecture** | MVVM + Clean Architecture |
-| **Dependency Injection** | Hilt/Dagger |
-| **Database** | Room (SQLite) |
-| **Async** | Kotlin Coroutines + Flow |
-| **Build** | Gradle 8.13 |
+🧩 Hybrid UI:
+OpenGL GLSurfaceView for 3D + Jetpack Compose for modern controls.
 
-## 💡 Key Technical Highlights
+🎥 Smart Camera System:
+Camera orbits, pans, zooms, and detects if you are inside or outside the room.
 
-### 1. **Hybrid UI System**
-Combines OpenGL ES for 3D rendering with Jetpack Compose for UI controls - the best of both worlds! A transparent `ComposeView` overlays the `GLSurfaceView`, allowing touch events to intelligently route to the appropriate layer.
+🔀 Thread-Safe Rendering:
 
-### 2. **Smart Camera System**
-The camera automatically detects when you're inside or outside the room bounds and updates the indicator in real-time. This helps users maintain spatial awareness while navigating.
+OpenGL operations strictly on the GL thread
 
-### 3. **Thread-Safe Rendering**
-All OpenGL operations happen on the GL thread, while UI updates occur on the main thread. Volatile flags ensure safe communication between threads when switching wall rendering modes.
+UI & ViewModel logic on the main thread
 
-### 4. **Ray-Casting for Placement**
-When you tap to place the robot, the app converts your 2D screen touch into a 3D ray, calculates where it intersects with the floor plane, and positions the robot precisely at that point.
+Shared flags for wall mode / annotations / robot placement.
 
-### 5. **Dynamic Geometry Generation**
-The room can switch between flat, mesh, and wireframe modes on-the-fly by regenerating vertex buffers with different geometry patterns - all without recreating the OpenGL context.
+🎯 Ray-Casting for Placement:
+Converts 2D tap → 3D ray → floor intersection to place the robot accurately.
 
-### 6. **Persistent State Management**
-Everything you create is immediately saved to the local Room database and automatically restored when you reopen the app - even after device rotation or app shutdown.
+🧱 Dynamic Geometry:
+Regenerates vertex data for Flat / Mesh / Wireframe room walls without recreating the GL context.
 
-## 🎨 Color Coding
+💾 Persistent State Management:
+Annotations and robot position are stored in Room DB and automatically restored on app relaunch.
 
-- **Spray Area** → Red annotations
-- **Sand Area** → Yellow annotations
-- **Obstacle** → Orange annotations
-- **Inside Room** → Green indicator
-- **Outside Room** → Red indicator
-- **Flat Walls** → Blue-gray button
-- **Mesh Walls** → Purple button
-- **Wireframe** → Cyan button
+🎨 Color Coding
 
-## 🐛 Known Limitations
+Spray Area → 🔴 Red
 
-1. **Robot Model**: Currently uses a simple cube representation instead of the full UR10e URDF model (planned enhancement)
-2. **Annotation Editing**: Once placed, annotations cannot be resized or moved (only deleted)
-3. **No Undo**: No undo/redo functionality for actions
+Sand Area → 🟡 Yellow
 
-## 🚀 Future Roadmap
+Obstacle → 🟠 Orange
 
-- [ ] Full UR10e robot model with articulated joints
-- [ ] Drag-to-resize annotations
-- [ ] Export room configuration to JSON/XML
-- [ ] Multiple room support with different dimensions
-- [ ] AR mode using ARCore
-- [ ] Path planning visualization for robot movement
+Inside Room → 🟢 Green indicator
 
-## 🔧 Troubleshooting
+Outside Room → 🔴 Red indicator
 
-**Blank screen on launch?**
-- Ensure your device supports OpenGL ES 2.0
-- Check Android version is 7.0 or higher
+🐛 Known Limitations
 
-**Performance issues?**
-- The app uses continuous rendering for smooth animations
-- On older devices, you can optimize by modifying `RENDERMODE_CONTINUOUSLY` to `RENDERMODE_WHEN_DIRTY`
+Robot uses a simple cube representation instead of a full UR10e model
 
-**Build errors?**
-```bash
+Annotations cannot be resized or dragged (only deleted)
+
+No undo/redo history for actions
+
+🚀 Future Roadmap & Recommendations
+
+ Full UR10e robot model with articulated joints
+
+ Drag-to-move and resize wall annotations
+
+ Export room configuration to JSON
+
+ Multiple room layouts with different dimensions
+
+ AR mode using ARCore
+
+ Path planning visualization for robot movement
+
+ Low-performance mode using RENDERMODE_WHEN_DIRTY
+
+🎯 Quick Start (Developers)
+# Clone the repository
+git clone https://github.com/adit9852/OpenGL_Final.git
+
+# Build & install debug APK
+./gradlew assembleDebug
+./gradlew installDebug
+
+
+Requirements
+
+Android 7.0+ (API 24+)
+
+Android Studio Hedgehog or newer
+
+Device/emulator with OpenGL ES 2.0 support
+
+🔧 Troubleshooting
+
+Blank screen?
+
+Check if your device supports OpenGL ES 2.0
+
+Confirm the minimum Android version is met
+
+Slow performance?
+
+Prefer running on a physical device
+
+Consider changing render mode from continuous to on-demand
+
+Build errors?
+
 ./gradlew clean
 ./gradlew assembleDebug
-```
 
-## 📄 License
+📄 License
 
 Created as part of an Android development internship assignment.
 
----
+Made with ❤️ using Kotlin, OpenGL ES, and Jetpack Compose by 𝓐𝓭𝓲𝓽𝔂𝓪
+    W1 --> Render
 
-**Made with ❤️ using Kotlin, OpenGL ES, and Jetpack Compose** by **𝓐𝓭𝓲𝓽𝔂𝓪**
+    Wait -->|Delete Annotation / Clear Robot| D1[Update DB]
+    D1 --> Render
+
+
