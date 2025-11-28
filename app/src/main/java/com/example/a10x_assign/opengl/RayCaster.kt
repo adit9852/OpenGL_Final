@@ -15,10 +15,17 @@ data class RayHit(
 )
 
 class RayCaster @Inject constructor() {
-    // Room dimensions (must match Room.kt)
-    private val width = 6f
-    private val height = 4f
-    private val depth = 8f
+    // Room dimensions - use actual PLY model dimensions (will be set dynamically)
+    private var width = PLYModel.ROOM_WIDTH   // 9f (default)
+    private var height = PLYModel.ROOM_HEIGHT  // 6f (default)
+    private var depth = PLYModel.ROOM_DEPTH    // 12f (default)
+
+    // Update dimensions from PLY model
+    fun setModelDimensions(w: Float, h: Float, d: Float) {
+        width = w
+        height = h
+        depth = d
+    }
 
     /**
      * Cast a ray from screen coordinates into the 3D world and find wall intersections
@@ -129,7 +136,8 @@ class RayCaster @Inject constructor() {
         if (Math.abs(direction[2]) < 0.0001f) return null  // Ray parallel to plane
 
         val t = (planeZ - origin[2]) / direction[2]
-        if (t < 0) return null  // Behind camera
+        // Allow even smaller threshold for better inside raycasting
+        if (t < 0.0001f) return null
 
         val hitX = origin[0] + direction[0] * t
         val hitY = origin[1] + direction[1] * t
@@ -141,7 +149,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitY + h) / height
 
-        return RayHit(WallType.BACK_WALL, normalizedX, normalizedY, t, hitX, planeZ, hitY)
+        return RayHit(WallType.BACK_WALL, normalizedX, normalizedY, t, hitX, hitY, planeZ)
     }
 
     private fun testFrontWall(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -153,7 +161,8 @@ class RayCaster @Inject constructor() {
         if (Math.abs(direction[2]) < 0.0001f) return null
 
         val t = (planeZ - origin[2]) / direction[2]
-        if (t < 0) return null
+        // Allow even smaller threshold for better inside raycasting
+        if (t < 0.0001f) return null
 
         val hitX = origin[0] + direction[0] * t
         val hitY = origin[1] + direction[1] * t
@@ -163,7 +172,7 @@ class RayCaster @Inject constructor() {
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitY + h) / height
 
-        return RayHit(WallType.FRONT_WALL, normalizedX, normalizedY, t, hitX, planeZ, hitY)
+        return RayHit(WallType.FRONT_WALL, normalizedX, normalizedY, t, hitX, hitY, planeZ)
     }
 
     private fun testLeftWall(origin: FloatArray, direction: FloatArray): RayHit? {
@@ -175,7 +184,8 @@ class RayCaster @Inject constructor() {
         if (Math.abs(direction[0]) < 0.0001f) return null
 
         val t = (planeX - origin[0]) / direction[0]
-        if (t < 0) return null
+        // Allow even smaller threshold for better inside raycasting
+        if (t < 0.0001f) return null
 
         val hitZ = origin[2] + direction[2] * t
         val hitY = origin[1] + direction[1] * t
@@ -197,7 +207,8 @@ class RayCaster @Inject constructor() {
         if (Math.abs(direction[0]) < 0.0001f) return null
 
         val t = (planeX - origin[0]) / direction[0]
-        if (t < 0) return null
+        // Allow even smaller threshold for better inside raycasting
+        if (t < 0.0001f) return null
 
         val hitZ = origin[2] + direction[2] * t
         val hitY = origin[1] + direction[1] * t
@@ -219,7 +230,9 @@ class RayCaster @Inject constructor() {
         if (Math.abs(direction[1]) < 0.0001f) return null
 
         val t = (planeY - origin[1]) / direction[1]
-        if (t < 0) return null
+        // Allow even smaller threshold for better inside raycasting
+        // This is critical for robot placement from inside
+        if (t < 0.0001f) return null
 
         val hitX = origin[0] + direction[0] * t
         val hitZ = origin[2] + direction[2] * t
@@ -228,6 +241,8 @@ class RayCaster @Inject constructor() {
 
         val normalizedX = (hitX + w) / width
         val normalizedY = (hitZ + d) / depth
+
+        android.util.Log.d("RayCaster", "Floor hit at ($hitX, $planeY, $hitZ), t=$t, normalized=($normalizedX, $normalizedY)")
 
         return RayHit(WallType.FLOOR, normalizedX, normalizedY, t, hitX, planeY, hitZ)
     }
@@ -241,7 +256,8 @@ class RayCaster @Inject constructor() {
         if (Math.abs(direction[1]) < 0.0001f) return null
 
         val t = (planeY - origin[1]) / direction[1]
-        if (t < 0) return null
+        // Allow even smaller threshold for better inside raycasting
+        if (t < 0.0001f) return null
 
         val hitX = origin[0] + direction[0] * t
         val hitZ = origin[2] + direction[2] * t

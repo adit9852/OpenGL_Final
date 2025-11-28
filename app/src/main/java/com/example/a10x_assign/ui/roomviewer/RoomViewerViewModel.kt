@@ -18,9 +18,8 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 enum class WallRenderMode {
-    FLAT,
-    MESH,
-    WIREFRAME
+    WIREFRAME,
+    MESH
 }
 
 data class RoomViewerState(
@@ -33,8 +32,9 @@ data class RoomViewerState(
     val annotations: List<AnnotationEntity> = emptyList(),
     val robotPosition: RobotEntity? = null,
     val showAnnotationList: Boolean = false,
-    val wallRenderMode: WallRenderMode = WallRenderMode.FLAT,
-    val isCameraInsideRoom: Boolean = true
+    val wallRenderMode: WallRenderMode = WallRenderMode.WIREFRAME,
+    val isCameraInsideRoom: Boolean = true,
+    val robotSize: Float = 1.0f
 )
 
 @HiltViewModel
@@ -110,9 +110,8 @@ class RoomViewerViewModel @Inject constructor(
 
     fun toggleMeshWalls() {
         val newMode = when (_uiState.value.wallRenderMode) {
-            WallRenderMode.FLAT -> WallRenderMode.MESH
+            WallRenderMode.WIREFRAME -> WallRenderMode.MESH
             WallRenderMode.MESH -> WallRenderMode.WIREFRAME
-            WallRenderMode.WIREFRAME -> WallRenderMode.FLAT
         }
         _uiState.value = _uiState.value.copy(wallRenderMode = newMode)
     }
@@ -218,5 +217,15 @@ class RoomViewerViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             isCameraInsideRoom = isCameraInsideRoom
         )
+    }
+
+    fun increaseRobotSize() {
+        val newSize = (_uiState.value.robotSize + 0.1f).coerceAtMost(3.0f)
+        _uiState.value = _uiState.value.copy(robotSize = newSize)
+    }
+
+    fun decreaseRobotSize() {
+        val newSize = (_uiState.value.robotSize - 0.1f).coerceAtLeast(0.3f)
+        _uiState.value = _uiState.value.copy(robotSize = newSize)
     }
 }

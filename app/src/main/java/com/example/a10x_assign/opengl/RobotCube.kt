@@ -336,7 +336,7 @@ class RobotCube @Inject constructor() {
         }
     }
 
-    fun draw(vpMatrix: FloatArray, x: Float, y: Float, z: Float, rotationY: Float) {
+    fun draw(vpMatrix: FloatArray, x: Float, y: Float, z: Float, rotationY: Float, size: Float = 1.0f) {
         if (!isInitialized) return
 
         GLES20.glUseProgram(program)
@@ -366,6 +366,9 @@ class RobotCube @Inject constructor() {
             // Apply robot position and rotation
             Matrix.translateM(partModelMatrix, 0, x, y, z)
             Matrix.rotateM(partModelMatrix, 0, rotationY, 0f, 1f, 0f)
+
+            // Apply size scaling
+            Matrix.scaleM(partModelMatrix, 0, size, size, size)
 
             // Apply part offset
             Matrix.translateM(partModelMatrix, 0, part.offsetX, part.offsetY, part.offsetZ)

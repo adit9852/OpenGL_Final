@@ -38,10 +38,17 @@ class AnnotationOverlay @Inject constructor() {
 
     private var isInitialized = false
 
-    // Room dimensions (must match Room.kt)
-    private val width = 6f
-    private val height = 4f
-    private val depth = 8f
+    // Room dimensions - use actual PLY model dimensions (will be set dynamically)
+    private var width = PLYModel.ROOM_WIDTH   // 9f (default)
+    private var height = PLYModel.ROOM_HEIGHT  // 6f (default)
+    private var depth = PLYModel.ROOM_DEPTH    // 12f (default)
+
+    // Update dimensions from PLY model
+    fun setModelDimensions(w: Float, h: Float, d: Float) {
+        width = w
+        height = h
+        depth = d
+    }
 
     private val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
 
@@ -121,8 +128,8 @@ class AnnotationOverlay @Inject constructor() {
         val mvpMatrix = FloatArray(16)
         Matrix.setIdentityM(modelMatrix, 0)
 
-        // Small offset towards camera to render above wall
-        val offset = 0.01f
+        // Larger offset to ensure annotations are clearly visible above the PLY point cloud
+        val offset = 0.05f
         when (annotation.wallType) {
             WallType.BACK_WALL -> Matrix.translateM(modelMatrix, 0, 0f, 0f, offset)
             WallType.FRONT_WALL -> Matrix.translateM(modelMatrix, 0, 0f, 0f, -offset)

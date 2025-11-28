@@ -10,7 +10,7 @@ import javax.microedition.khronos.opengles.GL10
 
 class RoomRenderer @Inject constructor(
     val camera: Camera,
-    val room: Room,
+    val plyModel: PLYModel,
     private val robotCube: RobotCube,
     private val annotationOverlay: AnnotationOverlay,
     private val textRenderer: TextRenderer
@@ -21,6 +21,9 @@ class RoomRenderer @Inject constructor(
 
     @Volatile
     var annotations: List<AnnotationEntity> = emptyList()
+
+    @Volatile
+    var robotSize: Float = 1.0f
 
     private var context: android.content.Context? = null
 
@@ -36,32 +39,52 @@ class RoomRenderer @Inject constructor(
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        // Set the background color to a pleasant gradient-like sky color
-        GLES20.glClearColor(0.78f, 0.85f, 0.92f, 1.0f)
+        try {
+            // Set the background color to a pleasant gradient-like sky color
+            GLES20.glClearColor(0.78f, 0.85f, 0.92f, 1.0f)
 
-        // Enable depth testing for proper 3D rendering
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
-        GLES20.glDepthFunc(GLES20.GL_LEQUAL)
+            // Enable depth testing for proper 3D rendering
+            GLES20.glEnable(GLES20.GL_DEPTH_TEST)
+            GLES20.glDepthFunc(GLES20.GL_LEQUAL)
 
-        // Disable face culling so we can see walls from inside the room
-        GLES20.glDisable(GLES20.GL_CULL_FACE)
+            // Disable face culling so we can see walls from inside the room
+            GLES20.glDisable(GLES20.GL_CULL_FACE)
 
-        // Initialize the room after OpenGL context is created
-        room.initialize()
-        robotCube.initialize()
-        annotationOverlay.initialize()
+            // Enable blending for smooth alpha compositing
+            GLES20.glEnable(GLES20.GL_BLEND)
+            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
-        // Initialize text renderer with context
-        context?.let {
-            textRenderer.initialize(it)
+            // Initialize the PLY model after OpenGL context is created
+            plyModel.initialize()
+            robotCube.initialize()
+            annotationOverlay.initialize()
+
+            // Initialize text renderer with context
+            context?.let {
+                textRenderer.initialize(it)
+            }
+
+            // Restore viewport and projection if we have valid dimensions
+            // This handles the case where onSurfaceChanged might not be called
+            if (viewportWidth > 0 && viewportHeight > 0) {
+                GLES20.glViewport(0, 0, viewportWidth, viewportHeight)
+                camera.setProjection(viewportWidth, viewportHeight)
+            }
+
+            android.util.Log.i("RoomRenderer", "Surface created successfully")
+        } catch (e: Exception) {
+            android.util.Log.e("RoomRenderer", "Error in onSurfaceCreated", e)
         }
+    }
 
-        // Restore viewport and projection if we have valid dimensions
-        // This handles the case where onSurfaceChanged might not be called
-        if (viewportWidth > 0 && viewportHeight > 0) {
-            GLES20.glViewport(0, 0, viewportWidth, viewportHeight)
-            camera.setProjection(viewportWidth, viewportHeight)
-        }
+    // Update model dimensions for annotations and raycaster
+    // Call this after PLY model is initialized
+    fun updateModelDimensions(rayCaster: RayCaster) {
+        val w = plyModel.getModelWidth()
+        val h = plyModel.getModelHeight()
+        val d = plyModel.getModelDepth()
+        annotationOverlay.setModelDimensions(w, h, d)
+        rayCaster.setModelDimensions(w, h, d)
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -74,32 +97,35 @@ class RoomRenderer @Inject constructor(
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        // Clear the color and depth buffers
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        try {
+            // Clear the color and depth buffers
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        // Get the combined projection and view matrix
-        val vpMatrix = camera.getVPMatrix()
+            // Get the combined projection and view matrix
+            val vpMatrix = camera.getVPMatrix()
 
-        // Check if camera is inside room and notify
-        onCameraPositionChanged?.invoke(camera.isInsideRoom())
+            // Check if camera is inside room and notify (throttled to avoid excessive callbacks)
+            onCameraPositionChanged?.invoke(camera.isInsideRoom())
 
-        // Draw the room
-        room.draw(vpMatrix)
+            // Draw the PLY model with camera position for lighting
+            plyModel.draw(vpMatrix, camera.eyeX, camera.eyeY, camera.eyeZ)
 
-        // Draw wall labels
-        textRenderer.drawWallLabels(vpMatrix)
+            // Draw annotations on walls (only if we have annotations)
+            if (annotations.isNotEmpty()) {
+                annotationOverlay.drawAnnotations(vpMatrix, annotations)
 
-        // Draw annotations on walls
-        annotationOverlay.drawAnnotations(vpMatrix, annotations)
+                // Draw annotation labels on top of each annotation
+                annotations.forEach { annotation ->
+                    textRenderer.drawAnnotationLabel(vpMatrix, annotation)
+                }
+            }
 
-        // Draw annotation labels on top of each annotation
-        annotations.forEach { annotation ->
-            textRenderer.drawAnnotationLabel(vpMatrix, annotation)
-        }
-
-        // Draw the robot if placed
-        robotPosition?.let { robot ->
-            robotCube.draw(vpMatrix, robot.x, robot.y, robot.z, robot.rotationY)
+            // Draw the robot if placed
+            robotPosition?.let { robot ->
+                robotCube.draw(vpMatrix, robot.x, robot.y, robot.z, robot.rotationY, robotSize)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RoomRenderer", "Error in onDrawFrame", e)
         }
     }
 }

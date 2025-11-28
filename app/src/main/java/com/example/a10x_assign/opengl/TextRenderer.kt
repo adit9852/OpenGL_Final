@@ -54,10 +54,10 @@ class TextRenderer @Inject constructor() {
     // Texture IDs for different labels
     private val textureIds = mutableMapOf<String, Int>()
 
-    // Room dimensions (must match Room.kt)
-    private val width = 6f
-    private val height = 4f
-    private val depth = 8f
+    // Room dimensions (must match PLYModel.kt)
+    private val width = PLYModel.ROOM_WIDTH   // 9f
+    private val height = PLYModel.ROOM_HEIGHT  // 6f
+    private val depth = PLYModel.ROOM_DEPTH    // 12f
 
     private val indices = shortArrayOf(0, 1, 2, 0, 2, 3)
 

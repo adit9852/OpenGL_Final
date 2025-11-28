@@ -6,9 +6,9 @@ import com.example.a10x_assign.data.AppDatabase
 import com.example.a10x_assign.data.RobotDao
 import com.example.a10x_assign.opengl.AnnotationOverlay
 import com.example.a10x_assign.opengl.Camera
+import com.example.a10x_assign.opengl.PLYModel
 import com.example.a10x_assign.opengl.RayCaster
 import com.example.a10x_assign.opengl.RobotCube
-import com.example.a10x_assign.opengl.Room
 import com.example.a10x_assign.opengl.RoomRenderer
 import com.example.a10x_assign.opengl.TextRenderer
 import dagger.Module
@@ -32,8 +32,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRoom(): Room {
-        return Room()
+    fun providePLYModel(@ApplicationContext context: Context): PLYModel {
+        return PLYModel(context)
     }
 
     @Provides
@@ -87,11 +87,11 @@ object ActivityModule {
     @ActivityScoped
     fun provideRoomRenderer(
         camera: Camera,
-        room: Room,
+        plyModel: PLYModel,
         robotCube: RobotCube,
         annotationOverlay: AnnotationOverlay,
         textRenderer: TextRenderer
     ): RoomRenderer {
-        return RoomRenderer(camera, room, robotCube, annotationOverlay, textRenderer)
+        return RoomRenderer(camera, plyModel, robotCube, annotationOverlay, textRenderer)
     }
 }
