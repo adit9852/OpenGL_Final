@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RobotDao {
-    @Query("SELECT * FROM robots ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT * FROM robots ORDER BY timestamp DESC LIMIT 1") // for most recnt position
     fun getRobotPosition(): Flow<RobotEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
